@@ -12,7 +12,6 @@ function makelocation(name, city, street, zip, latlng, marker){
     return loc;
 };
 
-
 // Storage of locations to mark in Knockout JS observable arrays.
 var Locations = ko.observableArray([
     makelocation('Town Hall','Ohio City', '1909 W. 25th St.','44113'),
@@ -36,12 +35,6 @@ function loadData() {
     var inputCity = $('#city').val();
     var address = inputStreet + ', ' + inputCity;
     $greeting.text('So, you want to live at '+ address+ '?');
-
-
-    var streetimgaddress = 'https://maps.googleapis.com/maps/api/streetview?location=' +
-         address + '&size=600x400';
-    $body.append('<img class="bgimg" src="'+ streetimgaddress + '">');
-
 
     var NytQueryUrl = 'http://api.nytimes.com/svc/search/v2/articlesearch.json?q='+
         inputCity +'&api-key=ec612587cb260600bc67a560ab4342ef:8:71766984';
@@ -90,4 +83,18 @@ function loadData() {
 
 $('#form-container').submit(loadData);
 
-// loadData();
+var overallLocation = ko.observable(
+    {
+    center: {lat: 41.4822, lng: -81.6697},
+    zoom: 8
+    }
+);
+
+function initPage() {
+   $('body').append('<div id="embeddedgooglemap" class="mapcanvas"></div>');
+
+    var map = new google.maps.Map(document.getElementById('embeddedgooglemap'),
+            overallLocation());
+}
+
+initPage();
