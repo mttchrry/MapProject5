@@ -1,12 +1,9 @@
-.mapcanvas {
-    position:fixed;
-    top: 0;
-    left: 0;
-    width:100%;
-    height:100%;
+html, body, #map {
+    height: 100%; margin: 0; padding: 0;
 }
 
-.greeting {
+
+/*.greeting {
     color:black;
     text-shadow: 1px 1px 3px rgba(255,255,255, .5);
     text-align: center;
@@ -38,4 +35,4 @@
 }
 .article:first-child {
     border-top:none;
-}
+}*/
