@@ -1,23 +1,115 @@
 
-// function makelocation(name, city, street, zip, latlng, marker){
-//     var loc = ko.observable(
-//     {
-//         name: name,
-//         street: street,
-//         zip: zip,
-//         city: city,
-//         latlng: latlng,
-//         marker: marker
-//     })
-//     return loc;
-// };
+function makelocation(name, city, street, zip, marker){
+    var loc = ko.observable(
+    {
+        name: name,
+        street: street,
+        zip: zip,
+        city: city,
+        latlng: '',
+        marker: marker
+    })
+    return loc;
+};
 
-// // Storage of locations to mark in Knockout JS observable arrays.
-// var Locations = ko.observableArray([
-//     makelocation('Town Hall','Ohio City', '1909 W. 25th St.','44113'),
-//     makelocation('West Side Market', 'Cleveland')
-// ])
+// Storage of locations to mark in Knockout JS observable arrays.
+var locations = ko.observableArray([
+    makelocation('Town Hall','Ohio City', '1909 W. 25th St.','44113'),
+    makelocation('West Side Market', 'Cleveland'),
+    makelocation('Rockwell Automation', 'Mayfield Heights', '1 Allen Bradley Dr.', '44124')
+])
 
+var locationIndex = 0;
+/*
+  createMapMarker(placeData) reads Google Places search results to create map pins.
+  placeData is the object returned from search results containing information
+  about a single location.
+  */
+  function createMapMarker(placeData) {
+
+    // The next lines save location data from the search result object to local variables
+    var lat = placeData.geometry.location.lat();  // latitude from the place service
+    var lon = placeData.geometry.location.lng();  // longitude from the place service
+    var name = placeData.formatted_address;   // name of the place from the place service
+    var bounds = window.mapBounds;            // current boundaries of the map window
+
+    // marker is an object with additional data about the pin for a single location
+    var marker = new google.maps.Marker({
+      map: map,
+      position: placeData.geometry.location,
+      title: name
+    });
+    // infoWindows are the little helper windows that open when you click
+    // or hover over a pin on a map. They usually contain more information
+    // about a location.
+    var infoWindow = new google.maps.InfoWindow({
+      content: name
+    });
+
+    // hmmmm, I wonder what this is about...
+    google.maps.event.addListener(marker, 'click', function() {
+      infoWindow.open(map, marker);
+    });
+
+    // this is where the pin actually gets added to the map.
+    // bounds.extend() takes in a map location object
+    bounds.extend(new google.maps.LatLng(lat, lon));
+    // fit the map to the new marker
+    map.fitBounds(bounds);
+    // center the map
+    map.setCenter(bounds.getCenter());
+  }
+  /*
+  callback(results, status) makes sure the search returned results for a location.
+  If so, it creates a new map marker for that location.
+  */
+  function callback(results, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      createMapMarker(results[0]);
+    }
+    console.log(status);
+  }
+/*
+ pinPoster(locations) takes in the array of locations created by locationFinder()
+ and fires off Google place searches for each location
+*/
+function pinNextPoster(locations) {
+  var service = new google.maps.places.PlacesService(map);
+
+  if(locationIndex < locations.length)
+  {
+    var request = {
+    query: locations[locationIndex]
+    };
+    service.textSearch(request, callback);
+    locationIndex = locationIndex + 1;
+  }  
+}
+
+function pinPoster(locations) {
+    // Iterates through the array of locations, creates a search object for each location
+    for (var place in locations) {
+        // Actually searches the Google Maps API for location data and runs the callback
+        // function with the search results after each search.
+        setTimeout(function () {
+            pinNextPoster(locations);
+        }, (500 * place));
+    }
+}
+ 
+var overallLocation = ko.observable(
+    {
+    center: { lat: 41.4822, lng: -81.6697},
+    zoom: 11
+    }
+);
+
+function initPage() {
+    var map = new google.maps.Map(document.getElementById('map'), overallLocation());
+    pinPoster(locations())
+};
+
+google.maps.event.addDomListener(window, 'load', initPage);
 // function loadData() {
 
 //     var $body = $('body');
@@ -82,19 +174,3 @@
 // };
 
 // $('#form-container').submit(loadData);
-
-var overallLocation = ko.observable(
-    {
-    center: { lat: 41.4822, lng: -81.6697},
-    zoom: 11
-    }
-);
-
-function initPage() {
-    var map = new google.maps.Map(document.getElementById('map'), overallLocation());
-};
-
-google.maps.event.addDomListener(window, 'load', initPage);
-
-
-//$(document).ready(initPage());
