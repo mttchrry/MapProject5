@@ -1,14 +1,13 @@
 
 function makelocation(name, city, street, zip, marker){
-    var loc = ko.observable(
-    {
+    var loc = {
         name: name,
         street: street,
         zip: zip,
         city: city,
         latlng: '',
         marker: marker
-    })
+    };
     return loc;
 };
 
@@ -16,8 +15,21 @@ function makelocation(name, city, street, zip, marker){
 var locations = ko.observableArray([
     makelocation('Town Hall','Ohio City', '1909 W. 25th St.','44113'),
     makelocation('West Side Market', 'Cleveland'),
-    makelocation('Rockwell Automation', 'Mayfield Heights', '1 Allen Bradley Dr.', '44124')
-])
+    makelocation('Rockwell Automation', 'Mayfield Heights', '1 Allen Bradley Dr.', '44124'),
+    makelocation('', 'Cleveland', '4101 Clinton Ave.'),
+    makelocation('Quicken Loans Arena', 'Cleveland', '', '44113'),
+    makelocation('Cleveland Museum of Art', 'Cleveland Heights'),
+    makelocation('Willoughby Brewing Company', 'Willoughby'),
+    makelocation('Lizardville', 'bedford heights')
+]);
+
+var mapOptions = {
+    disableDefaultUI: false
+};
+
+// This next line makes `map` a new Google Map JavaScript Object and attaches it to
+// <div id="map">, which is appended as part of an exercise late in the course.
+map = new google.maps.Map(document.querySelector('#map'), mapOptions);
 
 var locationIndex = 0;
 /*
@@ -65,10 +77,16 @@ var locationIndex = 0;
   */
   function callback(results, status) {
     if (status == google.maps.places.PlacesServiceStatus.OK) {
-      createMapMarker(results[0]);
+        console.log(results[0]);
+        createMapMarker(results[0]);
     }
     console.log(status);
   }
+
+function buildLocationString(localePiece, lastpeice){
+    lastpeice = lastpeice || false;
+    return ((localePiece == undefined || localePiece.length ==0)? '' : localePiece + ((lastpeice)? '': ", "));
+}
 /*
  pinPoster(locations) takes in the array of locations created by locationFinder()
  and fires off Google place searches for each location
@@ -76,11 +94,18 @@ var locationIndex = 0;
 function pinNextPoster(locations) {
   var service = new google.maps.places.PlacesService(map);
 
-  if(locationIndex < locations.length)
+  if(locationIndex < locations().length)
   {
+    var locale = locations()[locationIndex]
+    var localestring = buildLocationString(locale.name) +
+        buildLocationString(locale.address) +
+        buildLocationString(locale.city) +
+        buildLocationString(locale.zip, true);
+    console.log(localestring);
     var request = {
-    query: locations[locationIndex]
+        query: localestring
     };
+    console.log("request is:" + request.query);
     service.textSearch(request, callback);
     locationIndex = locationIndex + 1;
   }  
@@ -88,7 +113,7 @@ function pinNextPoster(locations) {
 
 function pinPoster(locations) {
     // Iterates through the array of locations, creates a search object for each location
-    for (var place in locations) {
+    for (var place in locations()) {
         // Actually searches the Google Maps API for location data and runs the callback
         // function with the search results after each search.
         setTimeout(function () {
@@ -96,7 +121,10 @@ function pinPoster(locations) {
         }, (500 * place));
     }
 }
- 
+
+// Sets the boundaries of the map based on pin locations
+window.mapBounds = new google.maps.LatLngBounds();
+
 var overallLocation = ko.observable(
     {
     center: { lat: 41.4822, lng: -81.6697},
@@ -104,9 +132,8 @@ var overallLocation = ko.observable(
     }
 );
 
-function initPage() {
-    var map = new google.maps.Map(document.getElementById('map'), overallLocation());
-    pinPoster(locations())
+function initPage() {    
+    pinPoster(locations)
 };
 
 google.maps.event.addDomListener(window, 'load', initPage);
