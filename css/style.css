@@ -2,8 +2,20 @@ html, body, #map {
     height: 100%; margin: 0; padding: 0;
 }
 
-
-/*.greeting {
+#map {
+  height: 100%;
+  position: absolute; 
+  top: 0; 
+  bottom: -200px; 
+  left: 0; 
+  right: 0; 
+  z-index: 0;
+}
+#container {
+  z-index: 100;
+  position: relative;
+}
+.greeting {
     color:black;
     text-shadow: 1px 1px 3px rgba(255,255,255, .5);
     text-align: center;
@@ -35,4 +47,4 @@ html, body, #map {
 }
 .article:first-child {
     border-top:none;
-}*/
+}
