@@ -13,8 +13,8 @@
 <body>
   <div id="map"></div>
   <div id="container">
-    <form id="form-container" class="form-container">
-          <label for="street">Filter Results: </label><input type="text" id="street" value="">
+    <form id="form-container" class="form-container" data-bind="submit: filterMarkers">
+          <label for="street">Filter Results: </label><input type="text" id="street" databind="value: filterString">
     </form>
     <h2 id="greeting" class="greeting">Cleveland Hotspots</h2>
     <script src="js/script.js"></script>

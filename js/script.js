@@ -7,7 +7,8 @@ var MapLocations = function() {
       zip: zip,
       city: city,
       latlng: '',
-      marker: marker
+      marker: marker, 
+      visible: true
     };
     return loc;
   };
@@ -37,29 +38,37 @@ var ViewModel = function() {
   // <div id="map">, which is appended as part of an exercise late in the course.
   this.map = new google.maps.Map(document.querySelector('#map'), this.mapOptions);
 
+  this.pins = ko.observableArray();
+
   this.locationIndex;
-  /*
-    createMapMarker(placeData) reads Google Places search results to create map pins.
-    placeData is the object returned from search results containing information
-    about a single location.
-    */
-  this.createMapMarker = function(placeData) {
-    console.log(placeData);
-    // The next lines save location data from the search result object to local variables
-    var lat = placeData.geometry.location.lat(); // latitude from the place service
-    var lon = placeData.geometry.location.lng(); // longitude from the place service
-    var name = placeData.formatted_address; // name of the place from the place service
-    var bounds = window.mapBounds; // current boundaries of the map window
 
-    console.log(this.map);
-    console.log(map);
+  // we have to give it access to the map object, so that
+  // it can register and de-register itself
+  var Pin = function Pin(map, name, lat, lon, address) {
+    var marker;
 
-    // marker is an object with additional data about the pin for a single location
-    var marker = new google.maps.Marker({
-      map: this.map,
-      position: placeData.geometry.location,
-      title: name
+    this.name = ko.observable(name);
+    this.lat = ko.observable(lat);
+    this.lon = ko.observable(lon);
+    this.address = ko.observable(address);
+
+    marker = new google.maps.Marker({
+      position: new google.maps.LatLng(lat, lon),
+      animation: google.maps.Animation.DROP
     });
+
+    this.isVisible = ko.observable(false);
+
+    this.isVisible.subscribe(function(currentState) {
+      if (currentState) {
+        marker.setMap(map);
+      } else {
+        marker.setMap(null);
+      }
+    });
+
+    this.isVisible(true);
+
     // infoWindows are the little helper windows that open when you click
     // or hover over a pin on a map. They usually contain more information
     // about a location.
@@ -69,16 +78,64 @@ var ViewModel = function() {
 
     // hmmmm, I wonder what this is about...
     google.maps.event.addListener(marker, 'click', function() {
-      infoWindow.open(this.map, marker);
+      infoWindow.open(map, marker);
     });
+  }
+
+  /*createMapMarker(placeData) reads Google Places search results to create map pins.
+    placeData is the object returned from search results containing information
+    about a single location.
+    */
+  this.createMapMarker = function(placeData) {
+    console.log(placeData);
+    // The next lines save location data from the search result object to local variables
+    var lat = placeData.geometry.location.lat(); // latitude from the place service
+    var lon = placeData.geometry.location.lng(); // longitude from the place service
+    var name = placeData.name; // name of the place from the place service
+    var address = placeData.address;
+    var bounds = window.mapBounds; // current boundaries of the map window
+
+    console.log(this.map);
+    console.log(map);
+
+    var currentPin = new Pin(this.map, name, lat, lon, address)
+    // marker is an object with additional data about the pin for a single location
+    var marker = ko.observable(
+      new google.maps.Marker({
+      map: this.map,
+      position: placeData.geometry.location,
+      title: name
+    }));
+
+    this.pins().push(currentPin);
 
     // this is where the pin actually gets added to the map.
     // bounds.extend() takes in a map location object
     bounds.extend(new google.maps.LatLng(lat, lon));
+
     // fit the map to the new marker
     this.map.fitBounds(bounds);
     // center the map
     this.map.setCenter(bounds.getCenter());
+    // infoWindows are the little helper windows that open when you click
+    // or hover over a pin on a map. They usually contain more information
+    // about a location.
+    // var infoWindow = new google.maps.InfoWindow({
+    //   content: name
+    // });
+
+    // // hmmmm, I wonder what this is about...
+    // google.maps.event.addListener(marker(), 'click', function() {
+    //   infoWindow.open(this.map, marker());
+    // });
+
+    // // this is where the pin actually gets added to the map.
+    // // bounds.extend() takes in a map location object
+    // bounds.extend(new google.maps.LatLng(lat, lon));
+    // // fit the map to the new marker
+    // this.map.fitBounds(bounds);
+    // // center the map
+    // this.map.setCenter(bounds.getCenter());
   }.bind(this)
   /*
   callback(results, status) makes sure the search returned results for a location.
@@ -133,6 +190,8 @@ var ViewModel = function() {
     }
   };
 
+  this.filterString = "lizard";
+
   // Sets the boundaries of the map based on pin locations
   window.mapBounds = new google.maps.LatLngBounds();
 
@@ -147,9 +206,32 @@ var ViewModel = function() {
   this.initPage = function() {
     this.pinPoster(this.mapLocations().locations());
   };
-}
+
+  this.filterMarkers = function() {
+    if (this.filterString.length == 0){
+      console.log("here0");
+      for(var marker in this.pins())
+      {
+        console.log("here");
+        marker.isVisible(true);
+      }
+    }
+    else {
+      console.log(this.filterString);
+      for (var marker in this.pins()) {
+        if (marker.name.search('/' + this.filterString + '/i')) {
+          marker.visible = true;
+        } else if (marker.address.search('/' + this.filterString + '/i')) {
+          marker.isVisible(true);
+        } else
+          marker.isVisible(false);
+      }
+    }
+  };
+};
 
 //map = new google.maps.Map(document.querySelector('#map'), this.mapOptions);
+ko.applyBindings(new ViewModel());
 
 google.maps.event.addDomListener(window, 'load', initPageScratch);
 
