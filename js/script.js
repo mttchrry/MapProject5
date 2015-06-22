@@ -18,29 +18,31 @@ var MapLocations = function() {
     this.makelocation('Town Hall', 'Ohio City', '1909 W. 25th St.', '44113'),
     this.makelocation('West Side Market', 'Cleveland'),
     this.makelocation('Rockwell Automation', 'Mayfield Heights', '1 Allen Bradley Dr.', '44124'),
-    this.makelocation('', 'Cleveland', '4101 Clinton Ave.'),
+    this.makelocation('', 'Cleveland, OH', '4101 Clinton Ave.', '44113'),
     this.makelocation('Quicken Loans Arena', 'Cleveland', '', '44113'),
     this.makelocation('Cleveland Museum of Art', 'Cleveland Heights'),
     this.makelocation('Willoughby Brewing Company', 'Willoughby'),
-    this.makelocation('Lizardville', 'bedford heights')
+    this.makelocation('Lizardville', 'bedford heights'),
+    this.makelocation('16-bit arcade', 'lakewood OH')
   ]);
 }
 
 var ViewModel = function() {
+  var self = this;
   // Store our locations in the viewModel.
-  this.mapLocations = ko.observable(new MapLocations());
+  self.mapLocations = ko.observable(new MapLocations());
   
-  this.mapOptions = {
+  self.mapOptions = {
     disableDefaultUI: false
   };
 
   // This next line makes `map` a new Google Map JavaScript Object and attaches it to
   // <div id="map">, which is appended as part of an exercise late in the course.
-  this.map = new google.maps.Map(document.querySelector('#map'), this.mapOptions);
+  self.map = new google.maps.Map(document.querySelector('#map'), this.mapOptions);
 
-  this.pins = ko.observableArray();
+  self.pins = ko.observableArray();
 
-  this.locationIndex;
+  self.locationIndex;
 
   // we have to give it access to the map object, so that
   // it can register and de-register itself
@@ -86,29 +88,18 @@ var ViewModel = function() {
     placeData is the object returned from search results containing information
     about a single location.
     */
-  this.createMapMarker = function(placeData) {
-    console.log(placeData);
+  self.createMapMarker = function(placeData) {
     // The next lines save location data from the search result object to local variables
     var lat = placeData.geometry.location.lat(); // latitude from the place service
     var lon = placeData.geometry.location.lng(); // longitude from the place service
     var name = placeData.name; // name of the place from the place service
-    var address = placeData.address;
+    var address = placeData.formatted_address;
+    console.log(address);
     var bounds = window.mapBounds; // current boundaries of the map window
 
-    console.log(this.map);
-    console.log(map);
-
     var currentPin = new Pin(this.map, name, lat, lon, address)
-    // marker is an object with additional data about the pin for a single location
-    var marker = ko.observable(
-      new google.maps.Marker({
-      map: this.map,
-      position: placeData.geometry.location,
-      title: name
-    }));
 
-    this.pins().push(currentPin);
-
+    self.pins().push(currentPin);
     // this is where the pin actually gets added to the map.
     // bounds.extend() takes in a map location object
     bounds.extend(new google.maps.LatLng(lat, lon));
@@ -117,36 +108,16 @@ var ViewModel = function() {
     this.map.fitBounds(bounds);
     // center the map
     this.map.setCenter(bounds.getCenter());
-    // infoWindows are the little helper windows that open when you click
-    // or hover over a pin on a map. They usually contain more information
-    // about a location.
-    // var infoWindow = new google.maps.InfoWindow({
-    //   content: name
-    // });
-
-    // // hmmmm, I wonder what this is about...
-    // google.maps.event.addListener(marker(), 'click', function() {
-    //   infoWindow.open(this.map, marker());
-    // });
-
-    // // this is where the pin actually gets added to the map.
-    // // bounds.extend() takes in a map location object
-    // bounds.extend(new google.maps.LatLng(lat, lon));
-    // // fit the map to the new marker
-    // this.map.fitBounds(bounds);
-    // // center the map
-    // this.map.setCenter(bounds.getCenter());
-  }.bind(this)
+  };
   /*
   callback(results, status) makes sure the search returned results for a location.
   If so, it creates a new map marker for that location.
   */
-  this.mapGenerateMarkerCallback = function(results, status) {
-    console.log(status);
+  self.mapGenerateMarkerCallback = function(results, status) {
     if (status == google.maps.places.PlacesServiceStatus.OK) {
-      this.createMapMarker(results[0]);
+      self.createMapMarker(results[0]);
     }
-  }.bind(this)
+  };
 
   function buildLocationString(localePiece, lastpeice) {
     lastpeice = lastpeice || false;
@@ -156,7 +127,7 @@ var ViewModel = function() {
    pinPoster(locations) takes in the array of locations created by locationFinder()
    and fires off Google place searches for each location
   */
-  this.pinNextPoster = function(locations) {
+  self.pinNextPoster = function(locations) {
     var service = new google.maps.places.PlacesService(this.map);
 
     if(this.locationIndex == undefined)
@@ -165,21 +136,22 @@ var ViewModel = function() {
     if (this.locationIndex < locations.length) {
       var locale = locations[this.locationIndex]
       var localestring = buildLocationString(locale.name) +
-        buildLocationString(locale.address) +
+        buildLocationString(locale.street) +
         buildLocationString(locale.city) +
         buildLocationString(locale.zip, true);
       var request = {
         query: localestring
       };
+      console.log(localestring);
       //console.log("request is:" + request.query);
-      console.log(this.mapGenerateMarkerCallback);
+      //console.log(this.mapGenerateMarkerCallback);
       service.textSearch(request, this.mapGenerateMarkerCallback);
       this.locationIndex = this.locationIndex + 1;
     }
   };
 
   // takes a list of locations to pin, in basic form.
-  this.pinPoster = function (locations) {
+  self.pinPoster = function (locations) {
     // Iterates through the array of locations, creates a search object for each location
     for (var place in locations) {
       // Actually searches the Google Maps API for location data and runs the callback
@@ -190,12 +162,12 @@ var ViewModel = function() {
     }
   };
 
-  this.filterString = "lizard";
+  self.filterString = ko.observable('');
 
   // Sets the boundaries of the map based on pin locations
   window.mapBounds = new google.maps.LatLngBounds();
 
-  this.overallLocation = ko.observable({
+  self.overallLocation = ko.observable({
     center: {
       lat: 41.4822,
       lng: -81.6697
@@ -207,36 +179,28 @@ var ViewModel = function() {
     this.pinPoster(this.mapLocations().locations());
   };
 
-  this.filterMarkers = function() {
-    if (this.filterString.length == 0){
-      console.log("here0");
-      for(var marker in this.pins())
-      {
-        console.log("here");
-        marker.isVisible(true);
-      }
-    }
-    else {
-      console.log(this.filterString);
-      for (var marker in this.pins()) {
-        if (marker.name.search('/' + this.filterString + '/i')) {
-          marker.visible = true;
-        } else if (marker.address.search('/' + this.filterString + '/i')) {
-          marker.isVisible(true);
-        } else
-          marker.isVisible(false);
-      }
-    }
+  self.filterMarkers = function() {
+    var search = self.filterString().toLowerCase();
+    console.log('search is '+ search);
+    console.log(self.pins());
+    return ko.utils.arrayFilter(self.pins(), function (pin) {
+        var match = pin.name().toLowerCase().indexOf(search) >= 0;
+        if(pin.address() != undefined)
+          match = match || pin.address().toLowerCase().indexOf(search) >= 0;
+        pin.isVisible(match); // maps API hide call
+        return match;
+    });
   };
 };
 
 //map = new google.maps.Map(document.querySelector('#map'), this.mapOptions);
-ko.applyBindings(new ViewModel());
+
 
 google.maps.event.addDomListener(window, 'load', initPageScratch);
 
 function initPageScratch(){
   vm = new ViewModel();
+  ko.applyBindings(vm);
   vm.initPage();
 }
 // function loadData() {

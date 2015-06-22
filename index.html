@@ -14,9 +14,13 @@
   <div id="map"></div>
   <div id="container">
     <form id="form-container" class="form-container" data-bind="submit: filterMarkers">
-          <label for="street">Filter Results: </label><input type="text" id="street" databind="value: filterString">
+          <label for="street">Filter Results: </label><input data-bind="value: filterString" type="text" id="street" >
     </form>
     <h2 id="greeting" class="greeting">Cleveland Hotspots</h2>
+    <h3>Cleveland Spots list:</h3>
+    <ul id="spotList" data-bind="foreach: pins">
+      </li data-bind="text: $data"></li>
+    </ul>
     <script src="js/script.js"></script>
   </div>
 </body>
