@@ -40,8 +40,8 @@ var ViewModel = function() {
   // <div id="map">, which is appended as part of an exercise late in the course.
   self.map = new google.maps.Map(document.querySelector('#map'), this.mapOptions);
 
-  self.pins = ko.observableArray();
-
+  self.pins = ko.observableArray([{name: ko.observable('BogusThing1')}]);
+  this.funk = ko.observableArray([{name: 'Thing1'}, {name: 'Thing2'}]);
   self.locationIndex;
 
   // we have to give it access to the map object, so that
@@ -83,7 +83,7 @@ var ViewModel = function() {
       infoWindow.open(map, marker);
     });
   }
-
+  
   /*createMapMarker(placeData) reads Google Places search results to create map pins.
     placeData is the object returned from search results containing information
     about a single location.
@@ -94,11 +94,11 @@ var ViewModel = function() {
     var lon = placeData.geometry.location.lng(); // longitude from the place service
     var name = placeData.name; // name of the place from the place service
     var address = placeData.formatted_address;
-    console.log(address);
     var bounds = window.mapBounds; // current boundaries of the map window
 
-    var currentPin = new Pin(this.map, name, lat, lon, address)
-
+    var currentPin = ko.observable(new Pin(this.map, name, lat, lon, address));
+    console.log(currentPin);
+    console.log(currentPin());
     self.pins().push(currentPin);
     // this is where the pin actually gets added to the map.
     // bounds.extend() takes in a map location object
@@ -127,8 +127,9 @@ var ViewModel = function() {
    pinPoster(locations) takes in the array of locations created by locationFinder()
    and fires off Google place searches for each location
   */
-  self.pinNextPoster = function(locations) {
-    var service = new google.maps.places.PlacesService(this.map);
+  var mapService = new google.maps.places.PlacesService(this.map);
+
+  self.pinNextPoster = function(locations) {  
 
     if(this.locationIndex == undefined)
       this.locationIndex = 0;
@@ -142,10 +143,8 @@ var ViewModel = function() {
       var request = {
         query: localestring
       };
-      console.log(localestring);
-      //console.log("request is:" + request.query);
-      //console.log(this.mapGenerateMarkerCallback);
-      service.textSearch(request, this.mapGenerateMarkerCallback);
+      //console.log(localestring);
+      mapService.textSearch(request, this.mapGenerateMarkerCallback);
       this.locationIndex = this.locationIndex + 1;
     }
   };
@@ -158,7 +157,7 @@ var ViewModel = function() {
       // function with the search results after each search.
       setTimeout(function() {
         this.pinNextPoster(locations);
-      }.bind(this), (500 * place));
+      }.bind(this), (10));
     }
   };
 
@@ -181,13 +180,15 @@ var ViewModel = function() {
 
   self.filterMarkers = function() {
     var search = self.filterString().toLowerCase();
-    console.log('search is '+ search);
+    //console.log('search is '+ search);
     console.log(self.pins());
     return ko.utils.arrayFilter(self.pins(), function (pin) {
-        var match = pin.name().toLowerCase().indexOf(search) >= 0;
-        if(pin.address() != undefined)
-          match = match || pin.address().toLowerCase().indexOf(search) >= 0;
-        pin.isVisible(match); // maps API hide call
+        console.log(pin);
+        console.log(pin());
+        var match = pin().name().toLowerCase().indexOf(search) >= 0;
+        if(pin().address() != undefined)
+          match = match || pin().address().toLowerCase().indexOf(search) >= 0;
+        pin().isVisible(match); // maps API hide call
         return match;
     });
   };
