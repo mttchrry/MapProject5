@@ -18,14 +18,9 @@
     </form>
     <h2 id="greeting" class="greeting">Cleveland Hotspots</h2>
     <h3>Cleveland Spots list:</h3>
-    <ul data-bind="foreach: pins">
+    <ul id="spotList" data-bind="foreach: filteredPins">
         <li> 
-          Cool items are: <b data-bind="text: name()"></b>
-        </li>
-    </ul>
-    <ul data-bind="foreach: funk">
-        <li>
-            The current item is: <b data-bind="text: name"></b>
+            Fun Spot: <a data-bind="text: name()"></a>
         </li>
     </ul>
     <script src="js/script.js"></script>

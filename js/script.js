@@ -41,7 +41,6 @@ var ViewModel = function() {
   self.map = new google.maps.Map(document.querySelector('#map'), self.mapOptions);
 
   self.pins = ko.observableArray([]);
-  self.funk = ko.observableArray([{name: 'Thing1'}, {name: 'Thing2'}]);
   self.locationIndex;
 
   // we have to give it access to the map object, so that
@@ -99,7 +98,7 @@ var ViewModel = function() {
     var currentPin = ko.observable(new Pin(self.map, name, lat, lon, address));
     console.log(currentPin);
     console.log(currentPin());
-    self.pins().push(currentPin);
+    self.pins.push(currentPin);
     // this is where the pin actually gets added to the map.
     // bounds.extend() takes in a map location object
     bounds.extend(new google.maps.LatLng(lat, lon));
@@ -178,13 +177,20 @@ var ViewModel = function() {
     self.pinPoster(self.mapLocations().locations());
   };
 
+  // keep a computed list of the filtered items. 
+  self.filteredPins= ko.computed(function(){
+    var filterPins = self.pins();
+    return ko.utils.arrayFilter(filterPins, function(thisPin) {
+      return thisPin().isVisible();
+    });
+  });
+
+  // set the visibility on the markers to match the filter. 
   self.filterMarkers = function() {
     var search = self.filterString().toLowerCase();
     //console.log('search is '+ search);
     console.log(self.pins());
     return ko.utils.arrayFilter(self.pins(), function (pin) {
-        console.log(pin);
-        console.log(pin());
         var match = pin().name().toLowerCase().indexOf(search) >= 0;
         if(pin().address() != undefined)
           match = match || pin().address().toLowerCase().indexOf(search) >= 0;
@@ -192,17 +198,15 @@ var ViewModel = function() {
         return match;
     });
   };
+
 };
-
-//map = new google.maps.Map(document.querySelector('#map'), this.mapOptions);
-
 
 google.maps.event.addDomListener(window, 'load', initPageScratch);
 
 function initPageScratch(){
-  vm = new ViewModel();
-  ko.applyBindings(vm);
+  var vm = new ViewModel();
   vm.initPage();
+  ko.applyBindings(vm);
 }
 // function loadData() {
 
