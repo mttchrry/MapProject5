@@ -43,17 +43,25 @@ var ViewModel = function() {
   self.pins = ko.observableArray([]);
   self.locationIndex;
 
+  self.showMarkerInfo = function(pin){
+    // infoWindows are the little helper windows that open when you click
+    // or hover over a pin on a map. They usually contain more information
+    // about a location.
+    console.log(pin);
+    pin.infoWindow.open(self.map, pin.marker);
+  };
+
   // we have to give it access to the map object, so that
   // it can register and de-register itself
   var Pin = function Pin(map, name, lat, lon, address) {
-    var marker;
-
+    //var marker;
+    var selfPin = this;
     this.name = ko.observable(name);
     this.lat = ko.observable(lat);
     this.lon = ko.observable(lon);
     this.address = ko.observable(address);
 
-    marker = new google.maps.Marker({
+    selfPin.marker = new google.maps.Marker({
       position: new google.maps.LatLng(lat, lon),
       animation: google.maps.Animation.DROP
     });
@@ -62,24 +70,21 @@ var ViewModel = function() {
 
     this.isVisible.subscribe(function(currentState) {
       if (currentState) {
-        marker.setMap(map);
+        selfPin.marker.setMap(map);
       } else {
-        marker.setMap(null);
+        selfPin.marker.setMap(null);
       }
     });
 
     this.isVisible(true);
 
-    // infoWindows are the little helper windows that open when you click
-    // or hover over a pin on a map. They usually contain more information
-    // about a location.
-    var infoWindow = new google.maps.InfoWindow({
+    selfPin.infoWindow = new google.maps.InfoWindow({
       content: name
     });
-
-    // hmmmm, I wonder what this is about...
-    google.maps.event.addListener(marker, 'click', function() {
-      infoWindow.open(map, marker);
+    // Show Info Listener;
+    google.maps.event.addListener(selfPin.marker, 'click', function() {
+      self.showMarkerInfo(selfPin);
+      //infoWindow.open(map, selfPin.marker);
     });
   }
 
