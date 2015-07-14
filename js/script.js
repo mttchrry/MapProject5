@@ -48,7 +48,11 @@ var ViewModel = function() {
     // or hover over a pin on a map. They usually contain more information
     // about a location.
     console.log(pin);
-    pin.infoWindow.open(self.map, pin.marker);
+    var map = pin.infoWindow.getMap();
+    if(map == null || map == "undefined")
+      pin.infoWindow.open(self.map, pin.marker);
+    else
+      pin.infoWindow.close();
   };
 
   // we have to give it access to the map object, so that
