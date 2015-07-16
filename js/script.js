@@ -45,16 +45,26 @@ var ViewModel = function() {
   self.pins = ko.observableArray([]);
   self.locationIndex;
 
+  self.selectedPin;
+
   self.showMarkerInfo = function(pin){
     // infoWindows are the little helper windows that open when you click
     // or hover over a pin on a map. They usually contain more information
     // about a location.
-    console.log(pin);
     var map = pin.infoWindow.getMap();
+
     if(map == null || map == "undefined")
+    {
+      if(self.selectedPin != null || self.selectedPin != undefined)
+        self.selectedPin.infoWindow.close();
       pin.infoWindow.open(self.map, pin.marker);
+      self.selectedPin = pin;
+    }
     else
+    {
       pin.infoWindow.close();
+      self.selectedPin = undefined;
+    }
 
     self.loadData(pin);
   };
