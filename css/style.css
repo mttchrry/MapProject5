@@ -12,10 +12,10 @@ html, body, #map {
   z-index: 0;
 }
 
-#listSection {
+#list-section {
     float:right;
-    width:290px;
-    padding:10px;
+    width:210px;
+    padding:0px;
     margin-right: 10px;
     position: relative;
 }
@@ -24,11 +24,12 @@ html, body, #map {
   z-index: 5;
   position: relative;
 }
-#spotList, h3 {
+#list-section, #spot-list, #wiki-container, h3 {
     z-index: 100;
     text-align: left;
 }
-#spotList {
+#spot-list, #wiki-container{
+    padding-left: 0;
     font-size: 12px;
 }
 .greeting {
@@ -38,12 +39,11 @@ html, body, #map {
     position: relative;
 }
 
-.wikipedia-container {
-    float:right;
-    width:290px;
+#wikipedia-container {
+
     padding:10px;
-    margin-right: 10px;
-    background-color: rgba(255,255,255,0.7);
+
+    background-color: rgba(255,255,255,0.5);
 }
 
 .nytimes-container {
