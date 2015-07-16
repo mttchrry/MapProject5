@@ -23,37 +23,19 @@
           <li data-bind="text: name(), click: $parent.showMarkerInfo">
           </li>
       </ul>
-        <div id="wikipedia-container">
-        <h3 id="wikipedia-header">Relevant Wikipedia Links</h3>
-        <ul id="wikipedia-links" data-bind="foreach: currentLocationWikis">
-            <li>
-                <a data-bind="attr: { href: url(), title: title() }, text: title()"></a> 
-            </li>
-        </ul>
-        </div>
+      <div id="wikipedia-container">
+      <h3 id="wikipedia-header">Relevant Wikipedia Links</h3>
+      <ul id="wikipedia-links" data-bind="foreach: currentLocationWikis">
+          <li>
+              <a data-bind="attr: { href: url(), title: title() }, text: title()"></a> 
+          </li>
+      </ul>
+      </div>
     </div>
-
+    <div id="yelp-section">
+      <h3>Yelp for : <a data-bind="attr: { href: currentLocationYelp.url, title: currentLocationYelp.title }, text: currentLocationYelp.name"></a></h3>
+    </div>
     <script src="js/script.js"></script>
   </div>
 </body>
 </html>
-
-
-
-<!-- <!DOCTYPE html>
-<html>
-  <head>
-    <style type="text/css">
-      html, body, #map-canvas { height: 100%; margin: 0; padding: 0;}
-    </style>
-    <script type="text/javascript"
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXoR8OVOffOy8OivR_UjsZdzmA1lMG3Cc">
-    </script>
-    <script src="js/mapscript.js"></script>
-    <script type="text/javascript">
-    </script>
-  </head>
-  <body>
-    <div id="map-canvas"></div>
-  </body>
-</html> -->

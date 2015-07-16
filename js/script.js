@@ -28,6 +28,7 @@ var MapLocations = function() {
 }
 
 var currentLocationWikis = ko.observableArray([]);
+var currentLocationYelp = ko.observable();
 
 var ViewModel = function() {
   var self = this;
@@ -225,9 +226,39 @@ var ViewModel = function() {
   self.loadData = function(pin) {
     //clear previous load data
     currentLocationWikis([]);
+
+    currentLocationYelp({});
     // load streetview
     var searchName = pin.name();
 
+    var yelpQueryUrl = "http://api.yelp.com/v2/search/?term=" + searchName + "&location=Cleveland, OH"
+    $.ajax({
+        url: yelpQueryUrl,
+        dataType: "jsonp",
+        jsonp: "callback",
+        success: function( response ) {
+            var articleList = response[1];
+            console.log("Yelpsuccess = " + articleList);
+            if(articleList.length > 0) {
+                currentLocationYelp(articleList[0].businesses[0]);
+                // var yelpBusinessUrl = yelpBusiness.url;
+                // var yelpUrl = yelpBusiness.image_url;
+                // currentLocationYelp.push({
+                //   yelpUrl: ko.observable(wikiArticleUrl),
+                //   yelpTitle: "Yelp: " + ko.observable(wikiArticle),
+
+                // });
+            }
+            console.log(currentLocationYelp());
+        }
+        //error: function(response) {
+        //    currentLocationWikis.push("Couldn't load links");
+        //}
+    })
+    .fail(function() {
+      currentLocationYelp({name: "Couldn't load links"});
+      console.log("Failure = " +currentLocationYelp[0]);
+    })
     //var NytQueryUrl = 'http://api.nytimes.com/svc/search/v2/articlesearch.json?q='+
     //    inputCity +'&api-key=ec612587cb260600bc67a560ab4342ef:8:71766984';
 
@@ -259,7 +290,7 @@ var ViewModel = function() {
         success: function( response ) {
 
             var articleList = response[1];
-            console.log("success = " + articleList);
+            console.log("wikisuccess = " + articleList);
             for (var i=0; i<articleList.length; i++) {
                 var wikiArticle = articleList[i];
                 var wikiArticleUrl = 'https://wikipedia.org/wiki/'+wikiArticle;
@@ -278,7 +309,6 @@ var ViewModel = function() {
       currentLocationWikis.push("Couldn't load links");
       console.log("Failure = " +currentLocationWikis[0]);
     })
-
     }
 };
 
