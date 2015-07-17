@@ -5,7 +5,8 @@
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXoR8OVOffOy8OivR_UjsZdzmA1lMG3Cc&libraries=places">
     </script>
-   
+    <script type="text/javascript" src="http://oauth.googlecode.com/svn/code/javascript/oauth.js"></script>
+    <script type="text/javascript" src="http://oauth.googlecode.com/svn/code/javascript/sha1.js"></script>
     <script src="js/libs/jquery.min.js"></script>
     <script src="js/libs/ko.min.js"></script>
     
@@ -32,8 +33,8 @@
       </ul>
       </div>
     </div>
-    <div id="yelp-section">
-      <h3>Yelp for : <a data-bind="attr: { href: currentLocationYelp.url, title: currentLocationYelp.title }, text: currentLocationYelp.name"></a></h3>
+    <div id="yelp-section" data-bind="style: { backgroundImage: 'url(\''+currentLocationYelp().image_url + '\')' }">
+      <h3>Yelp for : <a data-bind="attr: { href: currentLocationYelp().url, title: currentLocationYelp().name }, text: currentLocationYelp().name"></a></h3>
     </div>
     <script src="js/script.js"></script>
   </div>

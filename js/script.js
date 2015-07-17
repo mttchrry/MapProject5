@@ -28,7 +28,9 @@ var MapLocations = function() {
 }
 
 var currentLocationWikis = ko.observableArray([]);
-var currentLocationYelp = ko.observable();
+var currentLocationYelp = ko.observable({
+  name: "fun stuff"
+});
 
 var ViewModel = function() {
   var self = this;
@@ -120,8 +122,7 @@ var ViewModel = function() {
     var bounds = window.mapBounds; // current boundaries of the map window
 
     var currentPin = ko.observable(new Pin(self.map, name, lat, lon, address));
-    console.log(currentPin);
-    console.log(currentPin());
+    console.log(placeData);
     self.pins.push(currentPin);
     // this is where the pin actually gets added to the map.
     // bounds.extend() takes in a map location object
@@ -166,7 +167,6 @@ var ViewModel = function() {
       var request = {
         query: localestring
       };
-      //console.log(localestring);
       mapService.textSearch(request, self.mapGenerateMarkerCallback);
       self.locationIndex = self.locationIndex + 1;
     }
@@ -212,8 +212,6 @@ var ViewModel = function() {
   // set the visibility on the markers to match the filter. 
   self.filterMarkers = function() {
     var search = self.filterString().toLowerCase();
-    //console.log('search is '+ search);
-    console.log(self.pins());
     return ko.utils.arrayFilter(self.pins(), function (pin) {
         var match = pin().name().toLowerCase().indexOf(search) >= 0;
         if(pin().address() != undefined)
@@ -231,16 +229,66 @@ var ViewModel = function() {
     // load streetview
     var searchName = pin.name();
 
-    var yelpQueryUrl = "http://api.yelp.com/v2/search/?term=" + searchName + "&location=Cleveland, OH"
+    var auth = {
+      //
+      // Update with your auth tokens.
+      //
+      consumerKey: "nNMOhr2KqE44OV4SQUpjoQ",
+      consumerSecret: "Q7tHS8DLPnKeuij-Dn8_D2cl45M",
+      accessToken: "r3I86GuOVVIL-waceeBi_hM97rPLQp-I",
+      // This example is a proof of concept, for how to use the Yelp v2 API with javascript.
+      // You wouldn't actually want to expose your access token secret like this in a real application.
+      accessTokenSecret: "Tm9zngdcBUaGH8E3FwnfQ5hnBrI",
+      serviceProvider: {
+        signatureMethod: "HMAC-SHA1"
+      }
+    };
+    var terms = searchName;
+    var near = 'Cleveland';
+    var accessor = {
+      consumerSecret: auth.consumerSecret,
+      tokenSecret: auth.accessTokenSecret
+    };
+    parameters = [];
+    parameters.push(['term', terms]);
+    parameters.push(['location', near]);
+    parameters.push(['callback', 'cb']);
+    parameters.push(['oauth_consumer_key', auth.consumerKey]);
+    parameters.push(['oauth_consumer_secret', auth.consumerSecret]);
+    parameters.push(['oauth_token', auth.accessToken]);
+    parameters.push(['oauth_signature_method', 'HMAC-SHA1']);
+    var message = {
+      'action': 'http://api.yelp.com/v2/search',
+      'method': 'GET',
+      'parameters': parameters
+    };
+    OAuth.setTimestampAndNonce(message);
+    OAuth.SignatureMethod.sign(message, accessor);
+    var parameterMap = OAuth.getParameterMap(message.parameters);
+    parameterMap.oauth_signature = OAuth.percentEncode(parameterMap.oauth_signature)
+    console.log(parameterMap);
     $.ajax({
-        url: yelpQueryUrl,
-        dataType: "jsonp",
-        jsonp: "callback",
-        success: function( response ) {
-            var articleList = response[1];
-            console.log("Yelpsuccess = " + articleList);
+      'url': message.action,
+      'data': parameterMap,
+      'cache': true,
+      'dataType': 'jsonp',
+      'jsonpCallback': 'cb',
+      'success': function(data, textStats, XMLHttpRequest) {
+    //     console.log(data);
+    //     var output = prettyPrint(data);
+    //     $("body").append(output);
+    //   }
+    // });
+
+    // var yelpQueryUrl = "http://api.yelp.com/v2/search/?term=" + searchName + "&location=Cleveland, OH"
+    // $.ajax({
+    //     url: yelpQueryUrl,
+    //     dataType: "jsonp",
+    //     jsonp: "callback",
+    //     success: function( response ) {
+            var articleList = data.businesses;
             if(articleList.length > 0) {
-                currentLocationYelp(articleList[0].businesses[0]);
+                currentLocationYelp(articleList[0]);
                 // var yelpBusinessUrl = yelpBusiness.url;
                 // var yelpUrl = yelpBusiness.image_url;
                 // currentLocationYelp.push({
@@ -256,33 +304,12 @@ var ViewModel = function() {
         //}
     })
     .fail(function() {
-      currentLocationYelp({name: "Couldn't load links"});
-      console.log("Failure = " +currentLocationYelp[0]);
+      self.currentLocationYelp({name: "Couldn't load links"});
+      console.log("Failure = " + currentLocationYelp[0]);
     })
-    //var NytQueryUrl = 'http://api.nytimes.com/svc/search/v2/articlesearch.json?q='+
-    //    inputCity +'&api-key=ec612587cb260600bc67a560ab4342ef:8:71766984';
-
-    // $.getJSON(NytQueryUrl, function (data){
-    //     console.log(data);
-    //     //var JsonData = JSON.parse(data);
-    //     $nytHeaderElem.text("New York Times Articles for "+inputCity);
-    //     var articles = data.response.docs
-    //     var responseSize = data.response.docs.length;
-    //     for (var i=0; i< responseSize; i++){
-    //         var article = articles[i];
-    //         header = article.headline.main;
-    //        //console.log('ArticleTitles are : ' + header);
-    //         $nytElem.append('<li class="article">'+
-    //             '<a href="'+article.web_url+'">'+article.headline.main+'</a>'+
-    //             '<p>'+article.snippet+'</p></li>');
-    //     }
-    // }).error(function(){
-    //     $nytHeaderElem.text("New York Times Articles Could Not Be Loaded");
-    // });
 
     var wikiQueryUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' +
         searchName + '&format=json&callback=wikiCallback';
-    console.log(wikiQueryUrl);
     $.ajax({
         url: wikiQueryUrl,
         dataType: "jsonp",
@@ -290,7 +317,6 @@ var ViewModel = function() {
         success: function( response ) {
 
             var articleList = response[1];
-            console.log("wikisuccess = " + articleList);
             for (var i=0; i<articleList.length; i++) {
                 var wikiArticle = articleList[i];
                 var wikiArticleUrl = 'https://wikipedia.org/wiki/'+wikiArticle;
@@ -299,15 +325,10 @@ var ViewModel = function() {
                   title: ko.observable(wikiArticle)
                 });
             }
-            console.log(currentLocationWikis());
         }
-        //error: function(response) {
-        //    currentLocationWikis.push("Couldn't load links");
-        //}
     })
     .fail(function() {
       currentLocationWikis.push("Couldn't load links");
-      console.log("Failure = " +currentLocationWikis[0]);
     })
     }
 };
