@@ -1,3 +1,4 @@
+// initial data. 
 var MapLocations = function() {
 
   this.makelocation = function(name, city, street, zip, marker) {
@@ -27,11 +28,7 @@ var MapLocations = function() {
   ]);
 }
 
-var currentLocationWikis = ko.observableArray([]);
-var currentLocationYelp = ko.observable({
-  name: "fun stuff"
-});
-
+// The main view model for the entire Map project. 
 var ViewModel = function() {
   var self = this;
   // Store our locations in the viewModel.
@@ -40,6 +37,9 @@ var ViewModel = function() {
   self.mapOptions = {
     disableDefaultUI: false
   };
+
+  self.currentLocationWikis = ko.observableArray([]);
+  self.currentLocationYelp = ko.observable({});
 
   // This next line makes `map` a new Google Map JavaScript Object and attaches it to
   // <div id="map">, which is appended as part of an exercise late in the course.
@@ -96,7 +96,7 @@ var ViewModel = function() {
         selfPin.marker.setMap(null);
       }
     });
-
+    // initialize markers as visible.
     this.isVisible(true);
 
     selfPin.infoWindow = new google.maps.InfoWindow({
@@ -105,7 +105,6 @@ var ViewModel = function() {
     // Show Info Listener;
     google.maps.event.addListener(selfPin.marker, 'click', function() {
       self.showMarkerInfo(selfPin);
-      //infoWindow.open(map, selfPin.marker);
     });
   }
 
@@ -133,26 +132,26 @@ var ViewModel = function() {
     // center the map
     self.map.setCenter(bounds.getCenter());
   };
-  /*
-  callback(results, status) makes sure the search returned results for a location.
-  If so, it creates a new map marker for that location.
-  */
+
+  
+  // callback(results, status) makes sure the search returned results for a location.
+  // If so, it creates a new map marker for that location.
   self.mapGenerateMarkerCallback = function(results, status) {
     if (status == google.maps.places.PlacesServiceStatus.OK) {
       self.createMapMarker(results[0]);
     }
   };
 
+  // format the location information into a query-able string
   function buildLocationString(localePiece, lastpeice) {
     lastpeice = lastpeice || false;
     return ((localePiece == undefined || localePiece.length == 0) ? '' : localePiece + ((lastpeice) ? '' : ", "));
   }
-  /*
-   pinPoster(locations) takes in the array of locations created by locationFinder()
-   and fires off Google place searches for each location
-  */
+
+  // need map services to do the search for locations. 
   var mapService = new google.maps.places.PlacesService(self.map);
 
+  // pin one poster at a time. 
   self.pinNextPoster = function(locations) {  
 
     if(self.locationIndex == undefined)
@@ -189,14 +188,7 @@ var ViewModel = function() {
   // Sets the boundaries of the map based on pin locations
   window.mapBounds = new google.maps.LatLngBounds();
 
-  self.overallLocation = ko.observable({
-    center: {
-      lat: 41.4822,
-      lng: -81.6697
-    },
-    zoom: 11
-  });
-
+  // starting method to pin all posters on load
   self.initPage = function() {
     self.pinPoster(self.mapLocations().locations());
   };
@@ -221,14 +213,17 @@ var ViewModel = function() {
     });
   };
 
+  // Gets the Wiki and Yelp API calls and sets the data on the observabled for the 
+  // UI to consume.
   self.loadData = function(pin) {
     //clear previous load data
-    currentLocationWikis([]);
-
-    currentLocationYelp({});
+    self.currentLocationWikis([]);
+    self.currentLocationYelp({});
+    
     // load streetview
     var searchName = pin.name();
 
+    // Need to set up OATH stuff to request data from the Yelp API. 
     var auth = {
       //
       // Update with your auth tokens.
@@ -274,40 +269,21 @@ var ViewModel = function() {
       'dataType': 'jsonp',
       'jsonpCallback': 'cb',
       'success': function(data, textStats, XMLHttpRequest) {
-    //     console.log(data);
-    //     var output = prettyPrint(data);
-    //     $("body").append(output);
-    //   }
-    // });
-
-    // var yelpQueryUrl = "http://api.yelp.com/v2/search/?term=" + searchName + "&location=Cleveland, OH"
-    // $.ajax({
-    //     url: yelpQueryUrl,
-    //     dataType: "jsonp",
-    //     jsonp: "callback",
-    //     success: function( response ) {
-            var articleList = data.businesses;
-            if(articleList.length > 0) {
-                currentLocationYelp(articleList[0]);
-                // var yelpBusinessUrl = yelpBusiness.url;
-                // var yelpUrl = yelpBusiness.image_url;
-                // currentLocationYelp.push({
-                //   yelpUrl: ko.observable(wikiArticleUrl),
-                //   yelpTitle: "Yelp: " + ko.observable(wikiArticle),
-
-                // });
-            }
-            console.log(currentLocationYelp());
+            // we got data! Save it to the observable.
+            var businesses = data.businesses;
+            if(businesses.length > 0) 
+                self.currentLocationYelp(businesses[0]);
+            else
+              self.currentLocationYelp({name: 'No Business Found'});
+            console.log(self.currentLocationYelp());
         }
-        //error: function(response) {
-        //    currentLocationWikis.push("Couldn't load links");
-        //}
     })
     .fail(function() {
-      self.currentLocationYelp({name: "Couldn't load links"});
-      console.log("Failure = " + currentLocationYelp[0]);
+      self.self.currentLocationYelp({name: "Couldn't load links"});
+      console.log("Failure = " + self.currentLocationYelp());
     })
 
+    // simple wiki API query, much more user friendly that OATH.
     var wikiQueryUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' +
         searchName + '&format=json&callback=wikiCallback';
     $.ajax({
@@ -320,7 +296,7 @@ var ViewModel = function() {
             for (var i=0; i<articleList.length; i++) {
                 var wikiArticle = articleList[i];
                 var wikiArticleUrl = 'https://wikipedia.org/wiki/'+wikiArticle;
-                currentLocationWikis.push({
+                self.currentLocationWikis.push({
                   url: ko.observable(wikiArticleUrl),
                   title: ko.observable(wikiArticle)
                 });
@@ -328,7 +304,7 @@ var ViewModel = function() {
         }
     })
     .fail(function() {
-      currentLocationWikis.push("Couldn't load links");
+      self.currentLocationWikis.push("Couldn't load links");
     })
     }
 };

@@ -32,6 +32,15 @@ html, body, #map {
     padding-left: 0;
     font-size: 12px;
 }
+#form-container, #yelp-section{
+    float: left;
+    position: relative;
+}
+#yelp-section{
+    color: white;
+    width: 200px;
+    height: 100px;
+}
 .greeting {
     color:black;
     text-shadow: 1px 1px 3px rgba(255,255,255, .5);
