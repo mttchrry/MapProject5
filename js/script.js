@@ -218,7 +218,6 @@ var ViewModel = function() {
   self.loadData = function(pin) {
     //clear previous load data
     self.currentLocationWikis([]);
-    self.currentLocationYelp({});
     
     // load streetview
     var searchName = pin.name();
@@ -279,7 +278,7 @@ var ViewModel = function() {
         }
     })
     .fail(function() {
-      self.self.currentLocationYelp({name: "Couldn't load links"});
+      self.currentLocationYelp({name: "Couldn't load links"});
       console.log("Failure = " + self.currentLocationYelp());
     })
 
@@ -304,7 +303,11 @@ var ViewModel = function() {
         }
     })
     .fail(function() {
-      self.currentLocationWikis.push("Couldn't load links");
+      var errorTitle = {
+        title: ko.observable("Couldn't Load Links"),
+        url: ko.observable("")
+      };
+      self.currentLocationWikis.push(errorTitle);
     })
     }
 };
