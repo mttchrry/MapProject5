@@ -32,10 +32,7 @@ html, body, #map {
     padding-left: 0;
     font-size: 12px;
 }
-#form-container, #yelp-section{
-    float: left;
-    position: relative;
-}
+
 #yelp-section{
     color: white;
     width: 200px;
