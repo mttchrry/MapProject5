@@ -1,76 +1,77 @@
-html, body, #map {
+html {
     height: 100%; margin: 0; padding: 0;
+    font-size: 17px;
+    overflow-y: scroll;
+}
+
+@media (max-width: 900) {
+    html { font-size: 15px;} 
+}
+
+@media (max-width: 400px) {
+    html { font-size: 13px; }
+}
+
+@media only screen and (max-width: 500px) {
+    html {font-size: 15px;}
+    #map-spacer { height: 15rem;}
+}
+
+@media (max-width: 768px) {
+   #map-spacer { height: 15rem;}
+}
+#map-container{
+    position:fixed;
 }
 
 #map {
-  height: 100%;
   position: absolute; 
+}
+
+#map, #map-container{
+  height: 100%;
   top: 0; 
-  bottom: -200px; 
+  bottom: 0; 
   left: 0; 
   right: 0; 
   z-index: 0;
 }
 
-#list-section {
-    float:right;
-    width:210px;
-    padding:0px;
-    margin-right: 10px;
-    position: relative;
-}
-
-#container {
-  z-index: 5;
-  position: relative;
-}
-#list-section, #spot-list, #wiki-container, h3 {
+h3 {
+    margin-top: 0;
     z-index: 100;
     text-align: left;
+    font-size: 1.5rem;
 }
-#spot-list, #wiki-container{
-    padding-left: 0;
-    font-size: 12px;
+h2 {
+    z-index: 100;
+    text-align: left;
+    font-size: 1.5rem;
 }
-#form-container, #yelp-section{
-    float: left;
-    position: relative;
-}
+
 #yelp-section{
+    font-size: 1rem;
     color: white;
-    width: 200px;
-    height: 100px;
+    height: 8rem;
 }
 .greeting {
     color:black;
     text-shadow: 1px 1px 3px rgba(255,255,255, .5);
+
+    font-size: 2rem;
     text-align: center;
-    position: relative;
 }
 
-#wikipedia-container {
-
-    padding:10px;
-
+.list-container {
+    font-size: 1rem;
     background-color: rgba(255,255,255,0.5);
 }
-
-.nytimes-container {
-    padding: 10px;
-    margin-right:300px;
-    background-color: rgba(255,255,255,0.7);
+.col-sm-3 {
+  background-color: rgba(125,255,170,0.5);
 }
-
-.article-list {
-    margin: 0;
-    padding: 0;
+.col-sm-6 {
+  background-color: rgba(125,255,0,0.5);
 }
-
-.article {
-    list-style-type: none;
-    padding:10px;
-    border-top: 1px solid #CCC;
-}
-.article:first-child {
-    border-top:none;
+.col-sm-2 {
+  background-color: rgba(125,0,170,0.5);
 }

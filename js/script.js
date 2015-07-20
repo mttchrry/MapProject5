@@ -8,7 +8,7 @@ var MapLocations = function() {
       zip: zip,
       city: city,
       latlng: '',
-      marker: marker, 
+      marker: marker,
       visible: true
     };
     return loc;
@@ -33,38 +33,36 @@ var ViewModel = function() {
   var self = this;
   // Store our locations in the viewModel.
   self.mapLocations = ko.observable(new MapLocations());
-  
   self.mapOptions = {
-    disableDefaultUI: false
+    disableDefaultUI: true,
+    center: new google.maps.LatLng(35.137879, -82.836914),
+    scrollwheel: false
   };
 
   self.currentLocationWikis = ko.observableArray([]);
   self.currentLocationYelp = ko.observable({});
 
   // This next line makes `map` a new Google Map JavaScript Object and attaches it to
-  // <div id="map">, which is appended as part of an exercise late in the course.
-  self.map = new google.maps.Map(document.querySelector('#map'), self.mapOptions);
+  // <div id="map">
+  self.map = new google.maps.Map(document.getElementById('map'), self.mapOptions);
 
   self.pins = ko.observableArray([]);
   self.locationIndex;
 
   self.selectedPin;
 
-  self.showMarkerInfo = function(pin){
+  self.showMarkerInfo = function(pin) {
     // infoWindows are the little helper windows that open when you click
     // or hover over a pin on a map. They usually contain more information
     // about a location.
     var map = pin.infoWindow.getMap();
 
-    if(map == null || map == "undefined")
-    {
-      if(self.selectedPin != null || self.selectedPin != undefined)
+    if (map == null || map == "undefined") {
+      if (self.selectedPin != null || self.selectedPin != undefined)
         self.selectedPin.infoWindow.close();
       pin.infoWindow.open(self.map, pin.marker);
       self.selectedPin = pin;
-    }
-    else
-    {
+    } else {
       pin.infoWindow.close();
       self.selectedPin = undefined;
     }
@@ -121,7 +119,7 @@ var ViewModel = function() {
     var bounds = window.mapBounds; // current boundaries of the map window
 
     var currentPin = ko.observable(new Pin(self.map, name, lat, lon, address));
-    console.log(placeData);
+
     self.pins.push(currentPin);
     // this is where the pin actually gets added to the map.
     // bounds.extend() takes in a map location object
@@ -133,7 +131,6 @@ var ViewModel = function() {
     self.map.setCenter(bounds.getCenter());
   };
 
-  
   // callback(results, status) makes sure the search returned results for a location.
   // If so, it creates a new map marker for that location.
   self.mapGenerateMarkerCallback = function(results, status) {
@@ -152,9 +149,9 @@ var ViewModel = function() {
   var mapService = new google.maps.places.PlacesService(self.map);
 
   // pin one poster at a time. 
-  self.pinNextPoster = function(locations) {  
+  self.pinNextPoster = function(locations) {
 
-    if(self.locationIndex == undefined)
+    if (self.locationIndex == undefined)
       self.locationIndex = 0;
 
     if (self.locationIndex < locations.length) {
@@ -172,7 +169,7 @@ var ViewModel = function() {
   };
 
   // takes a list of locations to pin, in basic form.
-  self.pinPoster = function (locations) {
+  self.pinPoster = function(locations) {
     // Iterates through the array of locations, creates a search object for each location
     for (var place in locations) {
       // Actually searches the Google Maps API for location data and runs the callback
@@ -194,7 +191,7 @@ var ViewModel = function() {
   };
 
   // keep a computed list of the filtered items. 
-  self.filteredPins= ko.computed(function(){
+  self.filteredPins = ko.computed(function() {
     var filterPins = self.pins();
     return ko.utils.arrayFilter(filterPins, function(thisPin) {
       return thisPin().isVisible();
@@ -204,12 +201,12 @@ var ViewModel = function() {
   // set the visibility on the markers to match the filter. 
   self.filterMarkers = function() {
     var search = self.filterString().toLowerCase();
-    return ko.utils.arrayFilter(self.pins(), function (pin) {
-        var match = pin().name().toLowerCase().indexOf(search) >= 0;
-        if(pin().address() != undefined)
-          match = match || pin().address().toLowerCase().indexOf(search) >= 0;
-        pin().isVisible(match); // maps API hide call
-        return match;
+    return ko.utils.arrayFilter(self.pins(), function(pin) {
+      var match = pin().name().toLowerCase().indexOf(search) >= 0;
+      if (pin().address() != undefined)
+        match = match || pin().address().toLowerCase().indexOf(search) >= 0;
+      pin().isVisible(match); // maps API hide call
+      return match;
     });
   };
 
@@ -218,7 +215,6 @@ var ViewModel = function() {
   self.loadData = function(pin) {
     //clear previous load data
     self.currentLocationWikis([]);
-    
     // load streetview
     var searchName = pin.name();
 
@@ -260,61 +256,62 @@ var ViewModel = function() {
     OAuth.SignatureMethod.sign(message, accessor);
     var parameterMap = OAuth.getParameterMap(message.parameters);
     parameterMap.oauth_signature = OAuth.percentEncode(parameterMap.oauth_signature)
-    console.log(parameterMap);
     $.ajax({
-      'url': message.action,
-      'data': parameterMap,
-      'cache': true,
-      'dataType': 'jsonp',
-      'jsonpCallback': 'cb',
-      'success': function(data, textStats, XMLHttpRequest) {
-            // we got data! Save it to the observable.
-            var businesses = data.businesses;
-            if(businesses.length > 0) 
-                self.currentLocationYelp(businesses[0]);
-            else
-              self.currentLocationYelp({name: 'No Business Found'});
-            console.log(self.currentLocationYelp());
+        'url': message.action,
+        'data': parameterMap,
+        'cache': true,
+        'dataType': 'jsonp',
+        'jsonpCallback': 'cb',
+        'timeout': 5000,
+        'success': function(data, textStats, XMLHttpRequest) {
+          // we got data! Save it to the observable.
+          var businesses = data.businesses;
+          if (businesses.length > 0)
+            self.currentLocationYelp(businesses[0]);
+          else
+            self.currentLocationYelp({
+              name: 'No Business Found',
+              url: '',
+              image_url: ''
+            });
+        },
+        'error': function(XMLHttpRequest, textStatus, errorThrown) {
+          if(errorThrown == "timeout")
+            console.log("Failed to connect to Yelp, " + errorThrown);
         }
-    })
-    .fail(function() {
-      self.currentLocationYelp({name: "Couldn't load links"});
-      console.log("Failure = " + self.currentLocationYelp());
-    })
+
+      })
 
     // simple wiki API query, much more user friendly that OATH.
     var wikiQueryUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' +
-        searchName + '&format=json&callback=wikiCallback';
+      searchName + '&format=json&callback=wikiCallback';
     $.ajax({
         url: wikiQueryUrl,
         dataType: "jsonp",
         jsonp: "callback",
-        success: function( response ) {
-
-            var articleList = response[1];
-            for (var i=0; i<articleList.length; i++) {
-                var wikiArticle = articleList[i];
-                var wikiArticleUrl = 'https://wikipedia.org/wiki/'+wikiArticle;
-                self.currentLocationWikis.push({
-                  url: ko.observable(wikiArticleUrl),
-                  title: ko.observable(wikiArticle)
-                });
-            }
+        timeout: 5000,
+        success: function(response) {
+          var articleList = response[1];
+          for (var i = 0; i < articleList.length && i < 3; i++) {
+            var wikiArticle = articleList[i];
+            var wikiArticleUrl = 'https://wikipedia.org/wiki/' + wikiArticle;
+            self.currentLocationWikis.push({
+              url: ko.observable(wikiArticleUrl),
+              title: ko.observable(wikiArticle)
+            });
+          }
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+          if(errorThrown == "timeout")
+            console.log("Failed to connect to Wikipedia, " + errorThrown);
         }
-    })
-    .fail(function() {
-      var errorTitle = {
-        title: ko.observable("Couldn't Load Links"),
-        url: ko.observable("")
-      };
-      self.currentLocationWikis.push(errorTitle);
-    })
-    }
+      })
+  }
 };
 
 google.maps.event.addDomListener(window, 'load', initPageScratch);
 
-function initPageScratch(){
+function initPageScratch() {
   var vm = new ViewModel();
   vm.initPage();
   ko.applyBindings(vm);
