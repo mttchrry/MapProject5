@@ -1,0 +1,76 @@
+html, body, #map {
+    height: 100%; margin: 0; padding: 0;
+}
+
+#map {
+  height: 100%;
+  position: absolute; 
+  top: 0; 
+  bottom: -200px; 
+  left: 0; 
+  right: 0; 
+  z-index: 0;
+}
+
+#list-section {
+    float:right;
+    width:210px;
+    padding:0px;
+    margin-right: 10px;
+    position: relative;
+}
+
+#container {
+  z-index: 5;
+  position: relative;
+}
+#list-section, #spot-list, #wiki-container, h3 {
+    z-index: 100;
+    text-align: left;
+}
+#spot-list, #wiki-container{
+    padding-left: 0;
+    font-size: 12px;
+}
+#form-container, #yelp-section{
+    float: left;
+    position: relative;
+}
+#yelp-section{
+    color: white;
+    width: 200px;
+    height: 100px;
+}
+.greeting {
+    color:black;
+    text-shadow: 1px 1px 3px rgba(255,255,255, .5);
+    text-align: center;
+    position: relative;
+}
+
+#wikipedia-container {
+
+    padding:10px;
+
+    background-color: rgba(255,255,255,0.5);
+}
+
+.nytimes-container {
+    padding: 10px;
+    margin-right:300px;
+    background-color: rgba(255,255,255,0.7);
+}
+
+.article-list {
+    margin: 0;
+    padding: 0;
+}
+
+.article {
+    list-style-type: none;
+    padding:10px;
+    border-top: 1px solid #CCC;
+}
+.article:first-child {
+    border-top:none;
+}

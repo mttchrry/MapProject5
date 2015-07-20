@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXoR8OVOffOy8OivR_UjsZdzmA1lMG3Cc&libraries=places">
+    </script>
+    <script type="text/javascript" src="http://oauth.googlecode.com/svn/code/javascript/oauth.js"></script>
+    <script type="text/javascript" src="http://oauth.googlecode.com/svn/code/javascript/sha1.js"></script>
+    <script src="js/libs/jquery.min.js"></script>
+    <script src="js/libs/ko.min.js"></script>
+    
+</head>
+<body>
+  <div id="map"></div>
+  <h2 id="greeting" class="greeting">Cleveland Hotspots</h2>
+  <div id="container">
+    <form id="form-container" class="form-container" data-bind="submit: filterMarkers">
+        <label for="street">Filter Results: </label><input data-bind="value: filterString" type="text" id="street" >
+    </form>
+    <div id="list-section">
+      <h3>Cleveland Spots list:</h3>
+      <ul id="spot-list" data-bind="foreach: filteredPins">
+          <li data-bind="text: name(), click: $parent.showMarkerInfo">
+          </li>
+      </ul>
+      <div id="wikipedia-container">
+      <h3 id="wikipedia-header">Relevant Wikipedia Links</h3>
+      <ul id="wikipedia-links" data-bind="foreach: currentLocationWikis">
+          <li>
+              <a data-bind="attr: { href: url(), title: title() }, text: title()"></a> 
+          </li>
+      </ul>
+      </div>
+    </div>
+    <div id="yelp-section" data-bind="style: { backgroundImage: 'url(\''+currentLocationYelp().image_url + '\')' }">
+      <h3>Yelp for : <a data-bind="attr: { href: currentLocationYelp().url, title: currentLocationYelp().name }, text: currentLocationYelp().name"></a></h3>
+    </div>
+    <script src="js/script.js"></script>
+  </div>
+</body>
+</html>
