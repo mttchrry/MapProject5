@@ -35,7 +35,8 @@ var ViewModel = function() {
   self.mapLocations = ko.observable(new MapLocations());
   
   self.mapOptions = {
-    disableDefaultUI: false
+    disableDefaultUI: true,
+    scrollwheel: false
   };
 
   self.currentLocationWikis = ko.observableArray([]);
@@ -292,7 +293,7 @@ var ViewModel = function() {
         success: function( response ) {
 
             var articleList = response[1];
-            for (var i=0; i<articleList.length; i++) {
+            for (var i=0; i<articleList.length && i <3; i++) {
                 var wikiArticle = articleList[i];
                 var wikiArticleUrl = 'https://wikipedia.org/wiki/'+wikiArticle;
                 self.currentLocationWikis.push({
